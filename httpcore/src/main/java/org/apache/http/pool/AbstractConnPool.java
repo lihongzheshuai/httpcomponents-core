@@ -44,6 +44,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.coderli.log.MyLogFactory;
 import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.concurrent.FutureCallback;
@@ -189,7 +190,7 @@ public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
     public Future<E> lease(final T route, final Object state, final FutureCallback<E> callback) {
         Args.notNull(route, "Route");
         Asserts.check(!this.isShutDown, "Connection pool shut down");
-
+        MyLogFactory.getLog().info("Lease connection from pool.");
         return new Future<E>() {
 
             private final AtomicBoolean cancelled = new AtomicBoolean(false);

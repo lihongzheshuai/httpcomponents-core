@@ -29,6 +29,7 @@ package org.apache.http.protocol;
 import java.io.IOException;
 import java.util.List;
 
+import com.coderli.log.MyLogFactory;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
@@ -130,6 +131,7 @@ public final class ImmutableHttpProcessor implements HttpProcessor {
             final HttpRequest request,
             final HttpContext context) throws IOException, HttpException {
         for (final HttpRequestInterceptor requestInterceptor : this.requestInterceptors) {
+            MyLogFactory.getLog().debug("Http interceptor process: [" + requestInterceptor.getClass().getName() + "].");
             requestInterceptor.process(request, context);
         }
     }
