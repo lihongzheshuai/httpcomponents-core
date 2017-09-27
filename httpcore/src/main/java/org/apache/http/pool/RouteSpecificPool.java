@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import com.coderli.log.MyLogFactory;
 import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
 
@@ -73,6 +74,8 @@ abstract class RouteSpecificPool<T, C, E extends PoolEntry<T, C>> {
     }
 
     public E getFree(final Object state) {
+        MyLogFactory.getPoolEntryBlockingLog().info("Get free conn for pool by state: [" + state + "].");
+        MyLogFactory.getPoolEntryBlockingLog().debug("Current available conn count is: [" + available.size() + "].");
         if (!this.available.isEmpty()) {
             if (state != null) {
                 final Iterator<E> it = this.available.iterator();

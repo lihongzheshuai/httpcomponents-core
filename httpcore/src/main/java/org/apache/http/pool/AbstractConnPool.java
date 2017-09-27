@@ -61,14 +61,14 @@ import org.apache.http.util.Asserts;
  * to complete.
  *
  * @param <T> the route type that represents the opposite endpoint of a pooled
- *   connection.
+ *            connection.
  * @param <C> the connection type.
  * @param <E> the type of the pool entry containing a pooled connection.
  * @since 4.2
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
-                                               implements ConnPool<T, E>, ConnPoolControl<T> {
+        implements ConnPool<T, E>, ConnPoolControl<T> {
 
     private final Lock lock;
     private final Condition condition;
@@ -140,18 +140,18 @@ public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
      */
     public void shutdown() throws IOException {
         if (this.isShutDown) {
-            return ;
+            return;
         }
         this.isShutDown = true;
         this.lock.lock();
         try {
-            for (final E entry: this.available) {
+            for (final E entry : this.available) {
                 entry.close();
             }
-            for (final E entry: this.leased) {
+            for (final E entry : this.leased) {
                 entry.close();
             }
-            for (final RouteSpecificPool<T, C, E> pool: this.routeToPool.values()) {
+            for (final RouteSpecificPool<T, C, E> pool : this.routeToPool.values()) {
                 pool.shutdown();
             }
             this.routeToPool.clear();
@@ -243,9 +243,9 @@ public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
                 }
                 synchronized (this) {
                     try {
-                        for (;;) {
+                        for (; ; ) {
                             final E leasedEntry = getPoolEntryBlocking(route, state, timeout, tunit, this);
-                            if (validateAfterInactivity > 0)  {
+                            if (validateAfterInactivity > 0) {
                                 if (leasedEntry.getUpdated() + validateAfterInactivity <= System.currentTimeMillis()) {
                                     if (!validate(leasedEntry)) {
                                         leasedEntry.close();
@@ -286,9 +286,9 @@ public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
      *
      * @param route route of the connection.
      * @param state arbitrary object that represents a particular state
-     *  (usually a security principal or a unique token identifying
-     *  the user whose credentials have been used while establishing the connection).
-     *  May be {@code null}.
+     *              (usually a security principal or a unique token identifying
+     *              the user whose credentials have been used while establishing the connection).
+     *              May be {@code null}.
      * @return future for a leased pool entry.
      */
     public Future<E> lease(final T route, final Object state) {
@@ -302,15 +302,15 @@ public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
 
         Date deadline = null;
         if (timeout > 0) {
-            deadline = new Date (System.currentTimeMillis() + tunit.toMillis(timeout));
+            deadline = new Date(System.currentTimeMillis() + tunit.toMillis(timeout));
         }
         this.lock.lock();
         try {
             final RouteSpecificPool<T, C, E> pool = getPool(route);
             E entry;
-            for (;;) {
+            for (; ; ) {
                 Asserts.check(!this.isShutDown, "Connection pool shut down");
-                for (;;) {
+                for (; ; ) {
                     entry = pool.getFree(state);
                     if (entry == null) {
                         break;
@@ -334,8 +334,11 @@ public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
 
                 // New connection is needed
                 final int maxPerRoute = getMax(route);
+                MyLogFactory.getPoolEntryBlockingLog().debug("Max conn count per route, default is 2. [" + maxPerRoute + "].");
                 // Shrink the pool prior to allocating a new connection
                 final int excess = Math.max(0, pool.getAllocatedCount() + 1 - maxPerRoute);
+                MyLogFactory.getPoolEntryBlockingLog().debug("excess conn count [" + excess + "]. " +
+                        "getAllocatedCount means: available + leased.");
                 if (excess > 0) {
                     for (int i = 0; i < excess; i++) {
                         final E lastUsed = pool.getLastUsed();
@@ -351,6 +354,7 @@ public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
                 if (pool.getAllocatedCount() < maxPerRoute) {
                     final int totalUsed = this.leased.size();
                     final int freeCapacity = Math.max(this.maxTotal - totalUsed, 0);
+                    MyLogFactory.getPoolEntryBlockingLog().debug("Free capacity is: [" + freeCapacity + "]. MaxTotal(default 20) - leased.size");
                     if (freeCapacity > 0) {
                         final int totalAvailable = this.available.size();
                         if (totalAvailable > freeCapacity - 1) {
@@ -537,8 +541,8 @@ public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
 
     /**
      * Returns snapshot of all knows routes
-     * @return the set of routes
      *
+     * @return the set of routes
      * @since 4.4
      */
     public Set<T> getRoutes() {
@@ -608,7 +612,7 @@ public abstract class AbstractConnPool<T, C, E extends PoolEntry<T, C>>
      * of time and evicts them from the pool.
      *
      * @param idletime maximum idle time.
-     * @param tunit time unit.
+     * @param tunit    time unit.
      */
     public void closeIdle(final long idletime, final TimeUnit tunit) {
         Args.notNull(tunit, "Time unit");
